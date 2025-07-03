@@ -1,7 +1,5 @@
 {
-  "name": "jnsnotes",
   "private": true,
-  "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,16 +8,16 @@
     "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json"
   },
   "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^5.0.3",
+    "@sveltejs/vite-plugin-svelte": "^5.1.0",
     "@tsconfig/svelte": "^5.0.4",
-    "svelte": "^5.15.0",
-    "svelte-check": "^4.1.1",
-    "typescript": "~5.6.2",
-    "vite": "^6.0.5"
+    "svelte": "^5.35.1",
+    "svelte-check": "^4.2.2",
+    "typescript": "~5.8.3",
+    "vite": "^7.0.1"
   },
   "dependencies": {
-    "@tailwindcss/vite": "^4.0.0",
-    "lucide-svelte": "^0.474.0",
-    "tailwindcss": "^4.0.0"
+    "@lucide/svelte": "^0.525.0",
+    "@tailwindcss/vite": "^4.1.11",
+    "tailwindcss": "^4.1.11"
   }
 }

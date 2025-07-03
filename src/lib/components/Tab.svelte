@@ -1,51 +1,47 @@
 <script lang="ts">
-    import { TrashIcon } from "lucide-svelte";
+  import { XIcon } from "@lucide/svelte";
+  import type { Note } from "../types";
 
-    type Note = {
-        id: string;
-        title: string;
-        content: string;
-    };
+  let {
+    note,
+    isActive = false,
+    onSelect,
+    onDelete,
+  }: {
+    note: Note;
+    isActive: boolean;
+    onSelect: () => void;
+    onDelete: (id: string) => void;
+  } = $props();
 
-    let {
-        note,
-        isActive = false,
-        onSelect,
-        onDelete,
-    }: {
-        note: Note;
-        isActive: boolean;
-        onSelect: () => void;
-        onDelete: (id: string) => void;
-    } = $props();
-
-    // Get preview text from content
-    const preview = $derived(() => {
-        const text = note.content.trim();
-        return text ? text.slice(0, 20) : "New note";
-    });
+  // Get preview text from content
+  const preview = $derived(() => {
+    const text = note.content.trim();
+    return text ? text.slice(0, 20) : "New note";
+  });
 </script>
 
 <div
-    onclick={onSelect}
-    class={[
-        "group relative flex items-center shrink-0 gap-2 px-3 py-2 rounded-md cursor-pointer w-48",
-        isActive
-            ? "bg-white dark:bg-zinc-800"
-            : "hover:bg-zinc-200 dark:hover:bg-zinc-950",
-    ]}
+  class={[
+    "group relative flex items-center shrink-0 gap-2  rounded-md w-48",
+    isActive
+      ? "bg-white dark:bg-zinc-800"
+      : "hover:bg-zinc-200 dark:hover:bg-zinc-950",
+  ]}
 >
-    <span class="font-mono truncate flex-1">
-        {preview()}
+  <button onclick={onSelect} class="px-3 py-2 text-left cursor-pointer grow">
+    <span class="flex-1 font-mono truncate">
+      {preview()}
     </span>
+  </button>
 
-    <button
-        onclick={(e) => {
-            e.stopPropagation();
-            onDelete(note.id);
-        }}
-        class="hidden cursor-pointer group-hover:block hover:text-red-500 hover:bg-red-500/10 bg-white/10 p-1 rounded-sm shrink-0"
-    >
-        <TrashIcon class="size-4" />
-    </button>
+  <button
+    onclick={(e) => {
+      e.stopPropagation();
+      onDelete(note.id);
+    }}
+    class="bg-white/10 hover:bg-red-500/10 mr-2 p-1 rounded-sm hover:text-red-500 cursor-pointer shrink-0"
+  >
+    <XIcon class="size-4" />
+  </button>
 </div>

@@ -2,9 +2,10 @@
 @import "tailwindcss";
 
 @theme {
-    --font-mono: "dm mono", monospace;
+  --font-mono: "dm mono", monospace;
 }
 
 .btn {
-    @apply inline-flex font-medium items-center gap-2 px-3 py-2 rounded-md cursor-pointer;
+  @apply inline-flex items-center gap-2 px-3 py-2 rounded-md font-medium
+    cursor-pointer;
 }
