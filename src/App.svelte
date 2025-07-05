@@ -1,18 +1,17 @@
 <script lang="ts">
-  import { DownloadIcon, PlusIcon } from "@lucide/svelte";
+  import { DownloadIcon, PlusIcon, Variable } from "@lucide/svelte";
   import Tab from "./lib/components/Tab.svelte";
   import Editor from "./lib/components/Editor.svelte";
   import { generateId } from "./lib/utils";
   import "./app.css";
   import { fly } from "svelte/transition";
   import type { Note } from "./lib/types";
+  import { Button } from "$lib/components/ui/button";
 
   let notes: Note[] = $state([]);
   let activeNoteId: string = $state("");
 
-  const activeNote = $derived(
-    notes.find((note) => note.id === activeNoteId),
-  );
+  const activeNote = $derived(notes.find((note) => note.id === activeNoteId));
 
   const savedNotes = localStorage.getItem("notes");
   if (savedNotes) {
@@ -46,9 +45,7 @@
   }
 
   function updateNoteContent(id: string, content: string) {
-    notes = notes.map((
-      note,
-    ) => (note.id === id ? { ...note, content } : note));
+    notes = notes.map((note) => (note.id === id ? { ...note, content } : note));
   }
 
   function exportNote(note: Note) {
@@ -75,23 +72,24 @@
   };
 </script>
 
-<main class="grid grid-rows-[min-content_min-content_1fr] bg-zinc-100 dark:bg-zinc-900 w-full h-svh text-black dark:text-white">
-  <header class="items-center gap-4 grid grid-cols-[1fr_max-content] bg-white dark:bg-black p-4 w-full">
+<main
+  class="grid grid-rows-[min-content_min-content_1fr] bg-zinc-100 dark:bg-zinc-900 w-full h-svh text-black dark:text-white"
+>
+  <header
+    class="items-center gap-4 grid grid-cols-[1fr_max-content] bg-white dark:bg-black p-4 w-full"
+  >
     <h1 class="font-semibold text-xl">Notes</h1>
     <div class="flex items-center gap-2">
       {#if activeNote}
-        <button
-          onclick={() => exportNote(activeNote)}
-          class="bg-zinc-100 dark:bg-zinc-900 btn"
-        >
+        <Button onclick={() => exportNote(activeNote)} variant="outline">
           <DownloadIcon class="size-4" />
           Download
-        </button>
+        </Button>
       {/if}
-      <button onclick={createNote} class="bg-amber-500 text-zinc-100 btn">
+      <Button onclick={createNote}>
         <PlusIcon class="size-4" />
         New
-      </button>
+      </Button>
     </div>
   </header>
 
@@ -103,6 +101,7 @@
         onSelect={() => (activeNoteId = note.id)}
         onDelete={deleteNote}
       />
+      <div class="last:hidden bg-border w-px h-full"></div>
     {:else}
       <div class="px-3 py-2 font-mono">No notes</div>
     {/each}
@@ -113,10 +112,13 @@
       {#if activeNote}
         <Editor
           content={activeNote.content}
-          onContentChange={(content) => updateNoteContent(activeNote.id, content)}
+          onContentChange={(content) =>
+            updateNoteContent(activeNote.id, content)}
         />
       {:else}
-        <div class="flex flex-1 justify-center items-center text-muted-foreground">
+        <div
+          class="flex flex-1 justify-center items-center text-muted-foreground"
+        >
           Create a new note to get started
         </div>
       {/if}

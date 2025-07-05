@@ -1,6 +1,9 @@
 <script lang="ts">
   import { XIcon } from "@lucide/svelte";
   import type { Note } from "../types";
+  import { Button } from "./ui/button";
+  import { scale, slide } from "svelte/transition";
+  import * as AlertDialog from "$lib/components/ui/alert-dialog/index.js";
 
   let {
     note,
@@ -19,29 +22,42 @@
     const text = note.content.trim();
     return text ? text.slice(0, 20) : "New note";
   });
+
+  let isHovering = $state(false);
 </script>
 
+<!-- svelte-ignore a11y_mouse_events_have_key_events, a11y_no_static_element_interactions -->
 <div
-  class={[
-    "group relative flex items-center shrink-0 gap-2  rounded-md w-48",
-    isActive
-      ? "bg-white dark:bg-zinc-800"
-      : "hover:bg-zinc-200 dark:hover:bg-zinc-950",
-  ]}
+  class="group flex"
+  onmouseenter={() => void (isHovering = true)}
+  onmouseleave={() => void (isHovering = false)}
 >
-  <button onclick={onSelect} class="px-3 py-2 text-left cursor-pointer grow">
+  <Button onclick={onSelect} variant={isActive ? "default" : "outline"}>
     <span class="flex-1 font-mono truncate">
       {preview()}
     </span>
-  </button>
+  </Button>
 
-  <button
-    onclick={(e) => {
-      e.stopPropagation();
-      onDelete(note.id);
-    }}
-    class="bg-white/10 hover:bg-red-500/10 mr-2 p-1 rounded-sm hover:text-red-500 cursor-pointer shrink-0"
-  >
-    <XIcon class="size-4" />
-  </button>
+  <AlertDialog.Root>
+    {#if isHovering}
+      <div transition:scale={{ start: 0.5 }}>
+        <div transition:slide={{ axis: "x" }}>
+          <AlertDialog.Trigger>
+            <Button size="icon" variant="destructive" class="ml-1">
+              <XIcon class="size-4" />
+            </Button>
+          </AlertDialog.Trigger>
+        </div>
+      </div>
+    {/if}
+    <AlertDialog.Content>
+      Are you sure you want to delete this note?
+      <AlertDialog.Footer>
+        <AlertDialog.Cancel>Cancel</AlertDialog.Cancel>
+        <AlertDialog.Action onclick={() => void onDelete(note.id)}>
+          Yes
+        </AlertDialog.Action>
+      </AlertDialog.Footer>
+    </AlertDialog.Content>
+  </AlertDialog.Root>
 </div>
