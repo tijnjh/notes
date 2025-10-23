@@ -65,7 +65,7 @@
 		<div in:fly={{ y: 10 }} class="mt-8 flex justify-center overflow-scroll">
 			<textarea
 				value={noteContent.current}
-				class="mx-auto field-sizing-content min-h-full w-full max-w-[700px] resize-none rounded-lg bg-zinc-700 px-8 pt-8 pb-64 font-mono wrap-break-word text-white outline-none"
+				class="mx-auto field-sizing-content min-h-full w-full max-w-[700px] resize-none rounded-t-lg bg-zinc-700 px-8 pt-8 pb-64 font-mono wrap-break-word text-white outline-none"
 				oninput={(e) => updateNote(e.currentTarget.value)}
 			></textarea>
 		</div>
@@ -79,7 +79,11 @@
 			class="hidden shrink-0 group-hover:flex"
 			icon={Trash2Icon}
 			onclick={() => {
-				if (confirm(`are you sure you want to delete note '${note.id}'`)) {
+				if (
+					confirm(
+						`are you sure you want to delete note '${note.id}' with content '${note.content}'`,
+					)
+				) {
 					deleteNote(note.id)
 				}
 			}}

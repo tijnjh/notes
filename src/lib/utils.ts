@@ -31,6 +31,6 @@ export function getNoteContent(id: string) {
 }
 
 export function deleteNote(id: string) {
-	setNoteContent(id, '')
 	noteIds.current = noteIds.current.filter((noteId) => noteId !== id)
+	localStorage.removeItem(id)
 }
