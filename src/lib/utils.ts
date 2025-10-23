@@ -1,20 +1,36 @@
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
+import * as lzString from 'lz-string'
+import { PersistedState } from 'runed'
 
-export function generateId() {
-  return Math.random().toString(36).substring(2, 15);
-}
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+const serializer = {
+	serialize: (value: string | null) => {
+		if (!value) return ''
+		return lzString.compressToEncodedURIComponent(value)
+	},
+	deserialize: (value: string | null) => {
+		if (!value) return
+		return lzString.decompressFromEncodedURIComponent(value)
+	},
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type WithoutChild<T> = T extends { child?: any } ? Omit<T, "child"> : T;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type WithoutChildren<T> = T extends { children?: any }
-  ? Omit<T, "children">
-  : T;
-export type WithoutChildrenOrChild<T> = WithoutChildren<WithoutChild<T>>;
-export type WithElementRef<T, U extends HTMLElement = HTMLElement> = T & {
-  ref?: U | null;
-};
+export const noteIds = new PersistedState<string[]>('ids', [])
+
+export function createNote() {
+	const id = Math.random().toString(36).substring(2)
+	new PersistedState<string | null>(id, '', { serializer })
+	noteIds.current.push(id)
+	return id
+}
+
+export function setNoteContent(id: string, content: string) {
+	const noteContent = getNoteContent(id)
+	noteContent.current = content
+}
+
+export function getNoteContent(id: string) {
+	return new PersistedState<string | null>(id, null, { serializer })
+}
+
+export function deleteNote(id: string) {
+	setNoteContent(id, '')
+	noteIds.current = noteIds.current.filter((noteId) => noteId !== id)
+}
