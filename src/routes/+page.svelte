@@ -1,6 +1,5 @@
 <script lang="ts">
 	import Button from '$lib/components/Button.svelte'
-	import type { Note } from '$lib/types'
 	import {
 		noteIds,
 		createNote,
@@ -25,19 +24,6 @@
 		(content: string) => setNoteContent(params.note, content),
 		() => 500,
 	)
-
-	const notes = $derived.by(() => {
-		const obj = []
-
-		for (const noteId of noteIds.current) {
-			obj.push({
-				id: noteId,
-				content: getNoteContent(noteId).current,
-			})
-		}
-
-		return obj
-	})
 </script>
 
 <main class="grid h-dvh w-full grid-cols-[16rem_1fr]">
@@ -53,8 +39,8 @@
 		</Button>
 
 		<div class="flex flex-col-reverse gap-4">
-			{#each notes as note (note.id)}
-				{@render noteButton(note)}
+			{#each noteIds.current as noteId (noteId)}
+				{@render noteButton(noteId)}
 			{/each}
 		</div>
 	</aside>
@@ -72,39 +58,42 @@
 	{/key}
 </main>
 
-{#snippet noteButton(note: Note)}
+{#snippet noteButton(id: string)}
 	<div class="group flex w-full items-center gap-3">
 		<Button
 			size="icon"
 			class="hidden shrink-0 group-hover:flex"
 			icon={Trash2Icon}
 			onclick={() => {
-				if (
-					confirm(
-						`are you sure you want to delete note '${note.id}' with content '${note.content}'`,
-					)
-				) {
-					deleteNote(note.id)
+				if (confirm(`are you sure you want to delete note '${id}'`)) {
+					deleteNote(id)
 				}
 			}}
 		/>
 		<Button
-			variant={params.note === note.id ? 'primary' : 'secondary'}
+			title={id}
+			variant={params.note === id ? 'primary' : 'secondary'}
 			class="grow justify-start gap-0 truncate"
 			onclick={() => {
 				updateNote.runScheduledNow()
-				params.note = note.id
+				params.note = id
 			}}
 		>
-			{#if updateNote.pending && params.note === note.id}
-				<div transition:scale={{ opacity: 0 }}>
-					<div
-						transition:slide={{ axis: 'x' }}
-						class="mr-2 size-2 rounded-full bg-zinc-900"
-					></div>
-				</div>
+			{#if updateNote.pending && params.note === id}
+				<div class="mr-2 size-2 rounded-full bg-zinc-900"></div>
 			{/if}
-			<span class="truncate">{note.content?.trim() || note.id}</span>
+
+			{#key updateNote.pending}
+				{@const content = getNoteContent(id)}
+
+				{#if content.current}
+					<span class="truncate">
+						{content.current}
+					</span>
+				{:else}
+					<span class="truncate opacity-40">Empty note ({id})</span>
+				{/if}
+			{/key}
 		</Button>
 	</div>
 {/snippet}
