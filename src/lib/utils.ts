@@ -14,16 +14,24 @@ const serializer = {
 
 export const noteIds = new PersistedState<string[]>('ids', [])
 
+let onChangeCallback: (() => void) | null = null
+
+export function onNotesChange(callback: () => void) {
+	onChangeCallback = callback
+}
+
 export function createNote() {
 	const id = Math.random().toString(36).substring(2)
 	new PersistedState<string | null>(id, '', { serializer })
 	noteIds.current.push(id)
+	onChangeCallback?.()
 	return id
 }
 
 export function setNoteContent(id: string, content: string) {
 	const noteContent = getNoteContent(id)
 	noteContent.current = content
+	onChangeCallback?.()
 }
 
 export function getNoteContent(id: string) {
@@ -33,4 +41,5 @@ export function getNoteContent(id: string) {
 export function deleteNote(id: string) {
 	noteIds.current = noteIds.current.filter((noteId) => noteId !== id)
 	localStorage.removeItem(id)
+	onChangeCallback?.()
 }
