@@ -2,12 +2,66 @@ const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID
 const SCOPES = 'https://www.googleapis.com/auth/drive.appdata'
 const STORAGE_KEY = 'google_auth'
 
+type StoredAuth = {
+	accessToken: string
+	expiresAt: number
+	hasGrantedAccess: boolean
+}
+
 let accessToken = $state('')
 let tokenExpiresAt = $state(0)
 let isSignedIn = $state(false)
 let isLoading = $state(true)
 
 let tokenClient: google.accounts.oauth2.TokenClient | null = null
+
+function readStoredAuth(): StoredAuth | null {
+	const raw = localStorage.getItem(STORAGE_KEY)
+	if (!raw) return null
+	if (raw === '1') {
+		return {
+			accessToken: '',
+			expiresAt: 0,
+			hasGrantedAccess: true,
+		}
+	}
+
+	try {
+		const parsed = JSON.parse(raw)
+		if (
+			typeof parsed?.accessToken === 'string' &&
+			typeof parsed?.expiresAt === 'number' &&
+			typeof parsed?.hasGrantedAccess === 'boolean'
+		) {
+			return parsed satisfies StoredAuth
+		}
+	} catch {
+		// Ignore invalid persisted auth state and reset below.
+	}
+
+	localStorage.removeItem(STORAGE_KEY)
+	return null
+}
+
+function writeStoredAuth(partial?: Partial<StoredAuth>) {
+	const current = readStoredAuth() ?? {
+		accessToken: '',
+		expiresAt: 0,
+		hasGrantedAccess: false,
+	}
+
+	localStorage.setItem(
+		STORAGE_KEY,
+		JSON.stringify({
+			...current,
+			...partial,
+		}),
+	)
+}
+
+function clearStoredAuth() {
+	localStorage.removeItem(STORAGE_KEY)
+}
 
 function loadGisScript(): Promise<void> {
 	if (document.querySelector('script[src*="accounts.google.com/gsi/client"]')) {
@@ -25,12 +79,20 @@ function loadGisScript(): Promise<void> {
 function handleTokenResponse(response: google.accounts.oauth2.TokenResponse) {
 	if (response.error) {
 		console.error('Auth error:', response.error_description)
+		accessToken = ''
+		tokenExpiresAt = 0
+		isSignedIn = false
+		clearStoredAuth()
 		return false
 	}
 	accessToken = response.access_token
 	tokenExpiresAt = Date.now() + response.expires_in * 1000
 	isSignedIn = true
-	localStorage.setItem(STORAGE_KEY, '1')
+	writeStoredAuth({
+		accessToken,
+		expiresAt: tokenExpiresAt,
+		hasGrantedAccess: true,
+	})
 	return true
 }
 
@@ -49,7 +111,16 @@ export async function initAuth() {
 		},
 	})
 
-	if (localStorage.getItem(STORAGE_KEY)) {
+	const storedAuth = readStoredAuth()
+	if (storedAuth && Date.now() < storedAuth.expiresAt - 60_000) {
+		accessToken = storedAuth.accessToken
+		tokenExpiresAt = storedAuth.expiresAt
+		isSignedIn = true
+		isLoading = false
+		return
+	}
+
+	if (storedAuth?.hasGrantedAccess) {
 		tokenClient.requestAccessToken({ prompt: '' })
 	} else {
 		isLoading = false
@@ -67,7 +138,7 @@ export function signOut() {
 	accessToken = ''
 	tokenExpiresAt = 0
 	isSignedIn = false
-	localStorage.removeItem(STORAGE_KEY)
+	clearStoredAuth()
 }
 
 export async function getValidToken(): Promise<string> {
